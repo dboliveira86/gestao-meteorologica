@@ -1,0 +1,48 @@
+name: Publicar página no GitHub Pages
+
+# Publica automaticamente sempre que houver um push na branch principal.
+# Basta colocar este arquivo em: .github/workflows/deploy-pages.yml
+# e o arquivo HTML (ex: gestao_estacoes_meteorologicas.html) na raiz do repositório,
+# renomeado para index.html (ou ajuste o passo "Preparar site" abaixo).
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: {}   # permite disparar manualmente pela aba "Actions" do GitHub
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar site
+        run: |
+          mkdir -p _site
+          # Ajuste o nome do arquivo abaixo se for diferente
+          cp gestao_estacoes_meteorologicas.html _site/index.html
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Enviar artefato do site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
